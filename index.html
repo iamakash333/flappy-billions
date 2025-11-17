@@ -2,7 +2,17 @@
 <html>
 <head>
 <meta charset="UTF-8">
+
+<!-- ⭐ MOBILE ZOOM DISABLED ⭐ -->
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no,
+               viewport-fit=cover">
+
 <title>Flappy Billions</title>
+
 <style>
     body {
         margin: 0;
@@ -13,9 +23,9 @@
         display: block;
         width: 100vw;
         height: 100vh;
+        touch-action: none;
     }
 
-    /* ⭐ LESS LIGHTING VERSION ⭐ */
     #billionsText {
         position: absolute;
         top: 15px;
@@ -90,8 +100,6 @@ function createPipe() {
 
 setInterval(createPipe, 2500);
 
-
-/* ⭐ REDUCED LIGHTING BACKGROUND ⭐ */
 function drawGameBackground() {
     let sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
     sky.addColorStop(0, "#00111f");
@@ -115,7 +123,6 @@ function drawGameBackground() {
         ctx.stroke();
     }
 }
-
 
 function drawStartMenu() {
     ctx.fillStyle = "black";
@@ -154,7 +161,6 @@ function drawStartMenu() {
     }
 }
 
-
 function drawGameOver() {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -176,7 +182,6 @@ function drawGameOver() {
     ctx.fillText("Tap to Restart", canvas.width/2, canvas.height/2 + 80);
 }
 
-
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -197,7 +202,6 @@ function gameLoop() {
         gameOver = true;
     }
 
-    // ⬇ PIPES
     pipes.forEach((p) => {
         p.x -= 2;
 
@@ -220,7 +224,7 @@ function gameLoop() {
         }
     });
 
-    // ⬇ COINS (WITH NEW CIRCULAR COLLISION)
+    /* ⭐ FIXED COIN COLLISION — always +1 ⭐ */
     coins.forEach((c) => {
         c.x -= 2;
 
@@ -231,24 +235,19 @@ function gameLoop() {
             ctx.shadowBlur = 0;
         }
 
-        // ⭐ NEW PERFECT COLLISION ⭐
-        if (!c.collected) {
+        const birdCX = bird.x + bird.width / 2;
+        const birdCY = bird.y + bird.height / 2;
 
-            const birdCX = bird.x + bird.width / 2;
-            const birdCY = bird.y + bird.height / 2;
+        const coinCX = c.x + c.width / 2;
+        const coinCY = c.y + c.height / 2;
 
-            const coinCX = c.x + c.width / 2;
-            const coinCY = c.y + c.height / 2;
+        const distance = Math.hypot(birdCX - coinCX, birdCY - coinCY);
+        const touchRadius = (bird.width / 2) + (c.width / 2) - 5;
 
-            const distance = Math.hypot(birdCX - coinCX, birdCY - coinCY);
-
-            const touchRadius = (bird.width / 2) + (c.width / 2) - 5;
-
-            if (distance < touchRadius) {
-                c.collected = true;
-                score++;
-                coinSound.play();
-            }
+        if (distance < touchRadius && !c.collected) {
+            c.collected = true;       // ⭐ prevents double points
+            score = score + 1;        // ⭐ always +1
+            coinSound.play();
         }
     });
 
@@ -268,7 +267,6 @@ function gameLoop() {
 }
 
 gameLoop();
-
 
 function flap() {
     if (!gameStarted) {
@@ -291,5 +289,4 @@ window.addEventListener("click", flap);
 window.addEventListener("keydown", flap);
 
 </script>
-</body>
-</html>
+</body
