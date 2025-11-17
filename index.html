@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ⭐ MOBILE ZOOM DISABLED ⭐ -->
+<!-- ⭐ MOBILE ZOOM FULL DISABLED + SAFE-AREA SUPPORT ⭐ -->
 <meta name="viewport"
       content="width=device-width,
                initial-scale=1.0,
@@ -19,16 +19,16 @@
         overflow: hidden;
         background: #000;
     }
+
+    /* ⭐ IMPORTANT FIX — remove width/height vh/vw stretch ⭐ */
     canvas {
         display: block;
-        width: 100vw;
-        height: 100vh;
         touch-action: none;
     }
 
     #billionsText {
         position: absolute;
-        top: 15px;
+        top: env(safe-area-inset-top, 15px);
         left: 50%;
         transform: translateX(-50%);
         font-size: 38px;
@@ -51,8 +51,13 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+/* ⭐ REAL FIX — canvas size set ONLY by JS ⭐ */
+function resizeGame() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeGame();
+window.addEventListener("resize", resizeGame);
 
 let bgMusic = new Audio("bg.mp3");
 bgMusic.loop = true;
@@ -224,7 +229,7 @@ function gameLoop() {
         }
     });
 
-    /* ⭐ FIXED COIN COLLISION — always +1 ⭐ */
+    /* ⭐ FIXED — each coin always +1 ⭐ */
     coins.forEach((c) => {
         c.x -= 2;
 
@@ -245,8 +250,8 @@ function gameLoop() {
         const touchRadius = (bird.width / 2) + (c.width / 2) - 5;
 
         if (distance < touchRadius && !c.collected) {
-            c.collected = true;       // ⭐ prevents double points
-            score = score + 1;        // ⭐ always +1
+            c.collected = true;
+            score = score + 1;
             coinSound.play();
         }
     });
@@ -289,4 +294,5 @@ window.addEventListener("click", flap);
 window.addEventListener("keydown", flap);
 
 </script>
-</body
+</body>
+</html>
