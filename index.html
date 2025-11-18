@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ⭐ ULTRA MOBILE FIX (NO ZOOM + SAFE AREA) ⭐ -->
+<!-- REAL MOBILE SAFE-AREA + NO ZOOM -->
 <meta name="viewport"
       content="width=device-width,
                initial-scale=1.0,
@@ -17,37 +17,43 @@
     html, body {
         margin: 0;
         padding: 0;
-        overflow: hidden;
         background: #000;
-        touch-action: none;
         height: 100%;
         width: 100%;
+        overflow: hidden;
+        touch-action: none;
     }
 
-    canvas {
-        display: block;
-        touch-action: none;
-        width: 100% !important;
-        height: 100% !important;
+    /* ⭐ FIXED 3:4 CANVAS – BEST ENGAGEMENT */
+    #game {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: black;
+        width: 90vw;          /* Responsive width */
+        height: calc(90vw * 1.33); /* 3:4 ratio */
+        max-height: 92vh;
+        max-width: calc(92vh * 0.75);
     }
 
     #billionsText {
         position: fixed;
-        top: calc(env(safe-area-inset-top) + 12px);
+        top: calc(env(safe-area-inset-top) + 10px);
         left: 50%;
         transform: translateX(-50%);
-        font-size: 34px;
+        font-size: 32px;
         font-weight: 900;
         color: #00c8ff;
         font-family: Arial, sans-serif;
         text-shadow: 0 0 5px #00eaff;
-        z-index: 99;
-        pointer-events: none;
+        z-index: 10;
     }
 </style>
 </head>
 
 <body>
+
 <div id="billionsText">Billions Network</div>
 <canvas id="game"></canvas>
 
@@ -55,17 +61,11 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-/* ⭐ REAL MOBILE FIX — RETINA / DPR SUPPORT ⭐ */
-function resizeGame() {
-    const dpr = window.devicePixelRatio || 1;
-
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
-
-    ctx.scale(dpr, dpr);
-}
-resizeGame();
-window.addEventListener("resize", resizeGame);
+/* ⭐ FIXED INTERNAL GAME SIZE (Stable Gameplay) */
+const GAME_WIDTH = 720;
+const GAME_HEIGHT = 960;
+canvas.width = GAME_WIDTH;
+canvas.height = GAME_HEIGHT;
 
 /* AUDIO */
 let bgMusic = new Audio("bg.mp3");
@@ -79,7 +79,7 @@ let coinSound = new Audio("coin.mp3");
 let gameStarted = false;
 let gameOver = false;
 
-let bird = { x: 100, y: 200, width: 60, height: 60, gravity: 0 };
+let bird = { x: 120, y: 300, width: 70, height: 70, gravity: 0 };
 
 let birdImg = new Image();
 birdImg.src = "billions.png";
@@ -91,20 +91,21 @@ let pipes = [];
 let coins = [];
 let score = 0;
 
+/* PIPE GENERATION */
 function createPipe() {
     if (!gameStarted || gameOver) return;
 
-    let gap = 210;
-    let top = Math.random() * (window.innerHeight - gap - 200);
+    let gap = 260;
+    let top = Math.random() * (GAME_HEIGHT - gap - 250);
 
     pipes.push({
-        x: window.innerWidth,
+        x: GAME_WIDTH,
         top: top,
         bottom: top + gap
     });
 
     coins.push({
-        x: window.innerWidth + 40,
+        x: GAME_WIDTH + 40,
         y: top + gap / 2 - 35,
         width: 70,
         height: 70,
@@ -115,81 +116,67 @@ setInterval(createPipe, 2500);
 
 /* BACKGROUND */
 function drawGameBackground() {
-    let sky = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+    let sky = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
     sky.addColorStop(0, "#00111f");
     sky.addColorStop(0.5, "#00335f");
     sky.addColorStop(1, "#00182f");
     ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     ctx.fillStyle = "rgba(0, 150, 255, 0.04)";
     ctx.beginPath();
-    ctx.arc(window.innerWidth/2, window.innerHeight/2, 500, 0, Math.PI * 2);
+    ctx.arc(GAME_WIDTH/2, GAME_HEIGHT/2, 500, 0, Math.PI * 2);
     ctx.fill();
 }
 
 /* START SCREEN */
 function drawStartMenu() {
     ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    ctx.font = "80px Arial Black";
+    ctx.font = "70px Arial Black";
     ctx.fillStyle = "#00c8ff";
     ctx.textAlign = "center";
-    ctx.shadowColor = "#0088cc";
-    ctx.shadowBlur = 10;
-    ctx.fillText("FLAPPY BILLIONS", window.innerWidth/2, window.innerHeight/2 - 180);
-
-    ctx.shadowBlur = 0;
+    ctx.fillText("FLAPPY BILLIONS", GAME_WIDTH/2, GAME_HEIGHT/2 - 180);
 
     let time = Date.now() / 600;
     let float = Math.sin(time) * 6;
-    let size = 160 + Math.sin(time * 2) * 5;
+    let size = 150 + Math.sin(time * 2) * 5;
 
     ctx.save();
     ctx.shadowColor = "#00ccff";
     ctx.shadowBlur = 15;
-    ctx.drawImage(
-        birdImg,
-        window.innerWidth/2 - size/2,
-        window.innerHeight/2 - size/2 + float,
-        size,
-        size
-    );
+    ctx.drawImage(birdImg, GAME_WIDTH/2 - size/2, GAME_HEIGHT/2 - size/2 + float, size, size);
     ctx.restore();
 
-    ctx.font = "40px Arial";
+    ctx.font = "38px Arial";
     ctx.fillStyle = "white";
     if (Math.floor(Date.now() / 500) % 2 === 0) {
-        ctx.fillText("Tap to Start", window.innerWidth/2, window.innerHeight/2 + 220);
+        ctx.fillText("Tap to Start", GAME_WIDTH/2, GAME_HEIGHT/2 + 220);
     }
 }
 
 /* GAME OVER */
 function drawGameOver() {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     ctx.fillStyle = "#00c8ff";
     ctx.font = "60px Arial Black";
     ctx.textAlign = "center";
-    ctx.shadowColor = "#0088cc";
-    ctx.shadowBlur = 15;
-    ctx.fillText("GAME OVER", window.innerWidth/2, window.innerHeight/2 - 80);
-
-    ctx.shadowBlur = 0;
+    ctx.fillText("GAME OVER", GAME_WIDTH/2, GAME_HEIGHT/2 - 80);
 
     ctx.font = "40px Arial";
     ctx.fillStyle = "white";
-    ctx.fillText("Score: " + score, window.innerWidth/2, window.innerHeight/2);
+    ctx.fillText("Score: " + score, GAME_WIDTH/2, GAME_HEIGHT/2);
 
     ctx.font = "35px Arial";
-    ctx.fillText("Tap to Restart", window.innerWidth/2, window.innerHeight/2 + 80);
+    ctx.fillText("Tap to Restart", GAME_WIDTH/2, GAME_HEIGHT/2 + 80);
 }
 
 /* MAIN LOOP */
 function gameLoop() {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     if (!gameStarted) {
         drawStartMenu();
@@ -203,11 +190,12 @@ function gameLoop() {
     bird.gravity += 0.22;
     bird.y += bird.gravity;
 
-    if (bird.y > window.innerHeight - 10) {
+    if (bird.y > GAME_HEIGHT - 10) {
         if (!gameOver) hitSound.play();
         gameOver = true;
     }
 
+    /* PIPES */
     pipes.forEach((p) => {
         p.x -= 2;
 
@@ -215,14 +203,14 @@ function gameLoop() {
         ctx.shadowColor = "#00b4ff";
         ctx.shadowBlur = 10;
 
-        ctx.fillRect(p.x, 0, 80, p.top);
-        ctx.fillRect(p.x, p.bottom, 80, window.innerHeight);
+        ctx.fillRect(p.x, 0, 90, p.top);
+        ctx.fillRect(p.x, p.bottom, 90, GAME_HEIGHT);
 
         ctx.shadowBlur = 0;
 
         if (
             bird.x + bird.width > p.x &&
-            bird.x < p.x + 80 &&
+            bird.x < p.x + 90 &&
             (bird.y < p.top || bird.y + bird.height > p.bottom)
         ) {
             if (!gameOver) hitSound.play();
@@ -230,7 +218,7 @@ function gameLoop() {
         }
     });
 
-    /* ⭐ COIN ALWAYS +1 FIX ⭐ */
+    /* COINS */
     coins.forEach((c) => {
         c.x -= 2;
 
@@ -246,6 +234,7 @@ function gameLoop() {
         }
     });
 
+    /* SCORE */
     ctx.fillStyle = "#00eaff";
     ctx.font = "45px Arial Black";
     ctx.shadowColor = "#009be0";
@@ -278,7 +267,7 @@ function flap() {
 }
 window.addEventListener("click", flap);
 window.addEventListener("keydown", flap);
-
 </script>
+
 </body>
 </html>
