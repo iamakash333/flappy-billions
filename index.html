@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- REAL MOBILE SAFE-AREA + NO ZOOM -->
 <meta name="viewport"
       content="width=device-width,
                initial-scale=1.0,
@@ -24,17 +23,32 @@
         touch-action: none;
     }
 
-    /* ⭐ FIXED 3:4 CANVAS – BEST ENGAGEMENT */
-    #game {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: black;
-        width: 90vw;          /* Responsive width */
-        height: calc(90vw * 1.33); /* 3:4 ratio */
-        max-height: 92vh;
-        max-width: calc(92vh * 0.75);
+    /* ⭐ MOBILE = FIXED 3:4 RATIO */
+    @media (max-width: 900px) {
+        #game {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: black;
+            width: 90vw;
+            height: calc(90vw * 1.33); /* 3:4 ratio */
+            max-height: 92vh;
+            max-width: calc(92vh * 0.75);
+        }
+    }
+
+    /* ⭐ PC / LAPTOP = FREE RESIZE */
+    @media (min-width: 901px) {
+        #game {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: black;
+            width: min(60vw, 720px);
+            height: min(80vh, 960px);
+        }
     }
 
     #billionsText {
@@ -61,7 +75,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-/* ⭐ FIXED INTERNAL GAME SIZE (Stable Gameplay) */
+/* INTERNAL GAME SIZE (same always) */
 const GAME_WIDTH = 720;
 const GAME_HEIGHT = 960;
 canvas.width = GAME_WIDTH;
@@ -79,11 +93,12 @@ let coinSound = new Audio("coin.mp3");
 let gameStarted = false;
 let gameOver = false;
 
+/* BIRD */
 let bird = { x: 120, y: 300, width: 70, height: 70, gravity: 0 };
-
 let birdImg = new Image();
 birdImg.src = "billions.png";
 
+/* COIN */
 let coinImg = new Image();
 coinImg.src = "coin.png";
 
@@ -91,7 +106,7 @@ let pipes = [];
 let coins = [];
 let score = 0;
 
-/* PIPE GENERATION */
+/* PIPES */
 function createPipe() {
     if (!gameStarted || gameOver) return;
 
@@ -114,7 +129,7 @@ function createPipe() {
 }
 setInterval(createPipe, 2500);
 
-/* BACKGROUND */
+/* BG */
 function drawGameBackground() {
     let sky = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
     sky.addColorStop(0, "#00111f");
@@ -122,11 +137,6 @@ function drawGameBackground() {
     sky.addColorStop(1, "#00182f");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-    ctx.fillStyle = "rgba(0, 150, 255, 0.04)";
-    ctx.beginPath();
-    ctx.arc(GAME_WIDTH/2, GAME_HEIGHT/2, 500, 0, Math.PI * 2);
-    ctx.fill();
 }
 
 /* START SCREEN */
@@ -139,9 +149,9 @@ function drawStartMenu() {
     ctx.textAlign = "center";
     ctx.fillText("FLAPPY BILLIONS", GAME_WIDTH/2, GAME_HEIGHT/2 - 180);
 
-    let time = Date.now() / 600;
-    let float = Math.sin(time) * 6;
-    let size = 150 + Math.sin(time * 2) * 5;
+    let t = Date.now() / 600;
+    let float = Math.sin(t) * 6;
+    let size = 150 + Math.sin(t * 2) * 5;
 
     ctx.save();
     ctx.shadowColor = "#00ccff";
@@ -195,18 +205,12 @@ function gameLoop() {
         gameOver = true;
     }
 
-    /* PIPES */
     pipes.forEach((p) => {
         p.x -= 2;
 
         ctx.fillStyle = "#0095d9";
-        ctx.shadowColor = "#00b4ff";
-        ctx.shadowBlur = 10;
-
         ctx.fillRect(p.x, 0, 90, p.top);
         ctx.fillRect(p.x, p.bottom, 90, GAME_HEIGHT);
-
-        ctx.shadowBlur = 0;
 
         if (
             bird.x + bird.width > p.x &&
@@ -218,7 +222,6 @@ function gameLoop() {
         }
     });
 
-    /* COINS */
     coins.forEach((c) => {
         c.x -= 2;
 
@@ -234,11 +237,8 @@ function gameLoop() {
         }
     });
 
-    /* SCORE */
     ctx.fillStyle = "#00eaff";
     ctx.font = "45px Arial Black";
-    ctx.shadowColor = "#009be0";
-    ctx.shadowBlur = 10;
     ctx.fillText(score, 40, 60);
 
     if (gameOver) {
@@ -248,10 +248,9 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
-
 gameLoop();
 
-/* TAP */
+/* CONTROLS */
 function flap() {
     if (!gameStarted) {
         gameStarted = true;
